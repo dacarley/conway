@@ -17,8 +17,8 @@ const canvasHeight = canvas.height = canvasParent.clientHeight;
 const gridWidth = Math.floor(canvasWidth / cellSize);
 const gridHeight = Math.floor(canvasHeight / cellSize);
 
-let grid = Array.from({ length: gridWidth * gridHeight });
-let scratchGrid = Array.from({ length: gridWidth * gridHeight });
+let grid = new Array(gridWidth * gridHeight);
+let scratchGrid = new Array(gridWidth * gridHeight);
 
 let stop = true;
 
@@ -53,8 +53,8 @@ function refreshLoop() {
 }
 
 function getCell(row, col) {
-    row = ((row + gridHeight) % gridHeight);
-    col = ((col + gridWidth) % gridWidth);
+    row = (row + gridHeight) % gridHeight;
+    col = (col + gridWidth) % gridWidth;
     const value = grid[row * gridWidth + col];
 
     return isFinite(value) ? value : 0;
@@ -201,10 +201,8 @@ function onFlux() {
 function insertTemplate(template) {
     const lines = template.trim().split("\n");
     for (let [row, line] of lines.entries()) {
-        line = line.trim().replace("|", "");
-
-        for (let [col, char] of line.split("").entries()) {
-            grid[((row + 10) * gridWidth) + (col + 10)] = char === "*" ? 1 : 0;
+        for (let [col, char] of line.trim().split("").entries()) {
+            grid[(row * gridWidth) + col] = char === "*" ? 1 : 0;
         }
     }
 
