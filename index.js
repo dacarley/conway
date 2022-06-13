@@ -19,12 +19,16 @@ const canvasHeight = canvas.height = canvasParent.clientHeight;
 const gridWidth = Math.floor(canvasWidth / cellSize);
 const gridHeight = Math.floor(canvasHeight / cellSize);
 
+const metrics = {
+    lastFrameTimestamp: 0,
+    framerateHistory: new Array(10_000),
+    nextFramerateHistoryEntry: 0,
+    generation: 0
+}
+
+let stop = true;
 let grid = new Array(gridWidth * gridHeight);
 let scratchGrid = new Array(gridWidth * gridHeight);
-
-let lastFrameTimestamp = performance.now();
-let generation = 0;
-let stop = true;
 
 registerEventHandlers();
 initRefreshLoop();
@@ -138,12 +142,19 @@ function refreshDisplay() {
 }
 
 function updateMetrics() {
-    timestamp = performance.now();
-    const elapsed = timestamp - lastFrameTimestamp;
-    framerateSpan.innerText = `Framerate: ${Math.floor(1000 / elapsed)}`;
-    lastFrameTimestamp = timestamp;
+    const timestamp = performance.now();
+    const elapsed = timestamp - metrics.lastFrameTimestamp;
+    metrics.lastFrameTimestamp = timestamp;
 
-    generationCounterSpan.innerText = `Generations: ${++generation}`;
+    metrics.framerateHistory[metrics.nextFramerateHistoryEntry] = 1000 / elapsed;
+    metrics.nextFramerateHistoryEntry = (metrics.nextFramerateHistoryEntry + 1) % metrics.framerateHistory.length;
+
+    const divisor = Math.min(metrics.generation, metrics.framerateHistory.length);
+    let framerate = Math.floor(metrics.framerateHistory.reduce((a, b) => a + b, 0) / divisor);
+
+    framerateSpan.innerText = `Framerate: ${framerate} fps`;
+
+    generationCounterSpan.innerText = `Generations: ${++metrics.generation}`;
 }
 
 function onGo() {
