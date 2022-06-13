@@ -11,6 +11,8 @@ const randomButton = document.getElementById("random-button")
 const goButton = document.getElementById("go-button")
 const gosperButton = document.getElementById("gosper-button")
 const fluxButton = document.getElementById("flux-button")
+const framerateSpan = document.getElementById("framerate")
+const generationCounterSpan = document.getElementById("generation-counter")
 
 const canvasWidth = canvas.width = canvasParent.clientWidth;
 const canvasHeight = canvas.height = canvasParent.clientHeight;
@@ -20,6 +22,8 @@ const gridHeight = Math.floor(canvasHeight / cellSize);
 let grid = new Array(gridWidth * gridHeight);
 let scratchGrid = new Array(gridWidth * gridHeight);
 
+let lastFrameTimestamp = performance.now();
+let generation = 0;
 let stop = true;
 
 registerEventHandlers();
@@ -30,7 +34,7 @@ initRefreshLoop();
 function registerEventHandlers() {
     canvas.addEventListener("mousedown", onCanvasMouseDown);
     canvas.addEventListener("mousemove", onCanvasMouseMove);
-    
+
     clearButton.addEventListener("click", onClear);
     randomButton.addEventListener("click", onRandom);
     goButton.addEventListener("click", onGo);
@@ -40,16 +44,20 @@ function registerEventHandlers() {
 
 function initRefreshLoop() {
     refreshDisplay();
-    requestAnimationFrame(refreshLoop);    
-}
 
-function refreshLoop() {
-    if (!stop) {
+    function loop() {
+        setTimeout(loop, 0);
+
+        if (stop) {
+            return;
+        }
+
         applyRules();
         refreshDisplay();
+        updateMetrics();
     }
 
-    requestAnimationFrame(refreshLoop);
+    loop();
 }
 
 function getCell(row, col) {
@@ -127,6 +135,15 @@ function refreshDisplay() {
             }
         }
     }
+}
+
+function updateMetrics() {
+    timestamp = performance.now();
+    const elapsed = timestamp - lastFrameTimestamp;
+    framerateSpan.innerText = `Framerate: ${Math.floor(1000 / elapsed)}`;
+    lastFrameTimestamp = timestamp;
+
+    generationCounterSpan.innerText = `Generations: ${++generation}`;
 }
 
 function onGo() {
