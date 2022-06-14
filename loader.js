@@ -1,6 +1,9 @@
-module.exports = {
+import { Core } from "./core.js";
+import { Render } from "./render.js";
+
+export const Loader = {
     loadFile
-}
+};
 
 function readFile(file) {
     return new Promise((resolve, reject) => {
@@ -17,8 +20,8 @@ function readFile(file) {
     });
 }
 
-async function loadFile(evt) {
-    const text = await readFile(evt.target.files[0]);
+async function loadFile(file) {
+    const text = await readFile(file);
     const lines = text.split("\n");
 
     let ready = false;
@@ -34,13 +37,13 @@ async function loadFile(evt) {
                 for (let char of line) {
                     switch (true) {
                         case char === "!":
-                            refreshDisplay();
+                            Render.refreshDisplay();
                             return;
 
                         case char === "b":
                         case char === "o":
                             for (let i = 0; i < num; ++i) {
-                                grid[(row * gridWidth) + col + i] = char === "o" ? 1 : 0;
+                                Core.grid[(row * Core.gridWidth) + col + i] = char === "o" ? 1 : 0;
                             }
                             col += num;
                             digits = "";
@@ -67,17 +70,17 @@ async function loadFile(evt) {
             case line.startsWith("x = "):
                 // Only process the "standard" header line
                 // const [, x, y] = line.match(/x = (\d+), y = (\d+), rule = .*/)
-                // if (x > gridWidth) {
+                // if (x > Core.gridWidth) {
                 //     alert("Pattern is too wide");
                 //     return;
                 // }
 
-                // if (y > gridHeight) {
+                // if (y > Core.gridHeight) {
                 //     alert("Pattern is too tall");
                 //     return;
                 // }
 
-                onClear();
+                Core.clear();
 
                 ready = true;
                 break;

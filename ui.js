@@ -1,5 +1,6 @@
 import { Core } from "./core.js";
 import { Render } from "./render.js";
+import { Loader } from "./loader.js"
 
 export const UI = {
     init: () => {
@@ -81,10 +82,7 @@ function onRandom() {
 }
 
 function onClear() {
-    for (let i = 0; i < Core.grid.length; ++i) {
-        Core.grid[i] = 0;
-    }
-
+    Core.clear();
     Render.refreshDisplay();
 }
 

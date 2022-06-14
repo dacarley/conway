@@ -71,11 +71,18 @@ function insertTemplate(template) {
     Render.refreshDisplay();
 }
 
+function clear() {
+    for (let i = 0; i < Core.grid.length; ++i) {
+        Core.grid[i] = 0;
+    }
+}
+
 export const Core = {
     stop: true,
     gridWidth: Math.floor(Render.canvasWidth / Render.cellSize),
     gridHeight: Math.floor(Render.canvasHeight / Render.cellSize),
 
     init,
-    insertTemplate
+    insertTemplate,
+    clear
 };
