@@ -2,8 +2,8 @@ import { Render } from "./render.js";
 import { UI } from "./ui.js";
 
 function init() {
-    this.grid = new Array(Core.gridWidth * Core.gridHeight);
-    this.scratchGrid = new Array(Core.gridWidth * Core.gridHeight);
+    Core.grid = new Array(Core.gridWidth * Core.gridHeight);
+    Core.scratchGrid = new Array(Core.gridWidth * Core.gridHeight);
 
     Render.refreshDisplay();
 

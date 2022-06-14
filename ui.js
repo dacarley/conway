@@ -2,14 +2,6 @@ import { Core } from "./core.js";
 import { Render } from "./render.js";
 import { Loader } from "./loader.js"
 
-export const UI = {
-    init: () => {
-        registerEventHandlers();
-    },
-
-    updateMetrics
-}
-
 const metrics = {
     lastFrameTimestamp: 0,
     framerateHistory: new Array(1_000),
@@ -29,7 +21,7 @@ const fluxButton = document.getElementById("flux-button")
 const framerateSpan = document.getElementById("framerate")
 const generationCounterSpan = document.getElementById("generation-counter")
 
-function registerEventHandlers() {
+function init() {
     canvas.addEventListener("mousedown", onCanvasMouseDown);
     canvas.addEventListener("mousemove", onCanvasMouseMove);
 
@@ -87,11 +79,11 @@ function onClear() {
 }
 
 function onCanvasMouseDown(evt) {
-    const row = Math.floor(evt.offsetY / cellSize);
-    const col = Math.floor(evt.offsetX / cellSize);
-    index = (row * Core.gridWidth) + col
+    const row = Math.floor(evt.offsetY / Render.cellSize);
+    const col = Math.floor(evt.offsetX / Render.cellSize);
+    const index = (row * Core.gridWidth) + col
     Core.grid[index] = Core.grid[index] ? 0 : 1;
-    refreshDisplay();
+    Render.refreshDisplay();
 }
 
 function onCanvasMouseMove(evt) {
@@ -99,10 +91,10 @@ function onCanvasMouseMove(evt) {
         return;
     }
 
-    const row = Math.floor(evt.offsetY / cellSize);
-    const col = Math.floor(evt.offsetX / cellSize);
+    const row = Math.floor(evt.offsetY / Render.cellSize);
+    const col = Math.floor(evt.offsetX / Render.cellSize);
     Core.grid[(row * Core.gridWidth) + col] = 1;
-    refreshDisplay();
+    Render.refreshDisplay();
 }
 
 function onGosper() {
@@ -152,3 +144,9 @@ function onSunburst() {
         +---------------+
     `);
 }
+
+export const UI = {
+    init,
+    updateMetrics
+}
+
