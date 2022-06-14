@@ -14,7 +14,8 @@
             margin: 0;
         }
 
-        #canvas-parent, #canvas {
+        #canvas-parent,
+        #canvas {
             width: 100%;
             height: 100%;
         }
@@ -26,10 +27,15 @@
 <body>
     <div>
         <button id="clear-button">Clear</button>
+        <label for="upload">
+            <button id="file-open-button">Open...</button>
+            <input type="file" id="file-open-input" style="display:none">
+        </label>
         <button id="random-button">Random!</button>
         <button id="go-button">Go</button>
         <button id="flux-button">Flux</button>
         <button id="gosper-button">Gosper</button>
+        <button id="sunburst-button">Sunburst</button>
         <span id="framerate"></span>
         <span id="generation-counter"></span>
     </div>
@@ -38,6 +44,6 @@
     </div>
 </body>
 
-<script src="index.js"></script>
+<script src="index.js" type="module"></script>
 
 </html>
