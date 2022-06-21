@@ -32,14 +32,6 @@
 		canvasStore.set(canvas);
 		contextStore.set(context);
 
-		// setup entities
-		listeners.forEach(async (entity) => {
-			if (entity.setup) {
-				await entity.setup($props);
-			}
-			entity.ready = true;
-		});
-
 		// start game loop
 		return createLoop((elapsed, dt) => {
 			time.set(elapsed);
@@ -63,9 +55,7 @@
 		context.scale($pixelRatio, $pixelRatio);
 		listeners.forEach((entity) => {
 			try {
-				if (entity.mounted && entity.ready && entity.render) {
-					entity.render($props, dt);
-				}
+				entity.render($props, dt);
 			} catch (err) {
 				console.error(err);
 				if (killLoopOnError) {

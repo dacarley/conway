@@ -23,7 +23,7 @@
 		$worker.postMessage({
 			action: 'init',
 			params: {
-				grid: $grid,
+				gridBuffer: $grid,
 				gridWidth,
 				gridHeight
 			}

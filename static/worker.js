@@ -22,16 +22,21 @@ onmessage = function (e) {
     }
 }
 
-let workers = [];
+const workers = [];
 
 let running = false;
-let grid;
+let gridBuffer;
 let gridWidth;
 let gridHeight;
 let generations = 0;
 
 function init(params) {
-    ({ gridWidth, gridHeight, grid } = params);
+    ({ gridWidth, gridHeight, gridBuffer } = params);
+    generations = 0;
+
+    while (workers.length > 0) {
+        workers.pop();
+    }
 
     const numWorkers = navigator.hardwareConcurrency;
     for (let i = 0; i < numWorkers; ++i) {
@@ -81,10 +86,10 @@ const FPSTracker = {
     }
 }
 
-function copyArrayBuffer(src, dst, start, length) {
-    const srcBuffer = new Uint8Array(src, start, length);
-    const dstBuffer = new Uint8Array(dst, start, length);
-    dstBuffer.set(srcBuffer);
+function copyArrayBuffer(srcBuffer, dstBuffer, start, length) {
+    const src = new Uint8Array(srcBuffer, start, length);
+    const dst = new Uint8Array(dstBuffer, start, length);
+    dst.set(src);
 }
 
 async function run() {
@@ -106,8 +111,8 @@ async function run() {
             workers.map((worker, index) => new Promise(resolve => {
                 const startRow = index * numRows;
 
-                if (worker.scratchGrid?.byteLength != grid.byteLength) {
-                    worker.scratchGrid = new SharedArrayBuffer(grid.byteLength);
+                if (worker.scratchBuffer?.byteLength != gridBuffer.byteLength) {
+                    worker.scratchBuffer = new SharedArrayBuffer(gridBuffer.byteLength);
                 }
 
                 worker.worker.onmessage = (e) => {
@@ -116,8 +121,8 @@ async function run() {
                 worker.worker.postMessage({
                     action: "processBlock",
                     params: {
-                        grid,
-                        scratchGrid: worker.scratchGrid,
+                        gridBuffer,
+                        scratchBuffer: worker.scratchBuffer,
                         gridWidth,
                         gridHeight,
                         startRow,
@@ -130,9 +135,9 @@ async function run() {
         workers.forEach((worker, index) => {
             const startRow = index * numRows;
             const start = startRow * gridWidth;
-            const end = Math.min(grid.byteLength, (startRow + numRows) * gridWidth);
+            const end = Math.min(gridBuffer.byteLength, (startRow + numRows) * gridWidth);
             const length = end - start;
-            copyArrayBuffer(worker.scratchGrid, grid, start, length);
+            copyArrayBuffer(worker.scratchBuffer, gridBuffer, start, length);
         });
 
         ++generations;
@@ -144,15 +149,15 @@ async function run() {
 }
 
 function processBlock(params) {
-    const { grid, scratchGrid, gridWidth, gridHeight, startRow, numRows } = params;
+    const { gridBuffer, scratchBuffer, gridWidth, gridHeight, startRow, numRows } = params;
 
-    const gridBuffer = new Uint8Array(grid);
-    const scratchBuffer = new Uint8Array(scratchGrid);
+    const grid = new Uint8Array(gridBuffer);
+    const scratch = new Uint8Array(scratchBuffer);
 
     function getCell(row, col) {
         row = (row + gridHeight) % gridHeight;
         col = (col + gridWidth) % gridWidth;
-        return gridBuffer[row * gridWidth + col];
+        return grid[row * gridWidth + col];
     }
 
     for (let row = startRow; row < (startRow + numRows); ++row) {
@@ -168,9 +173,9 @@ function processBlock(params) {
                 getCell(row + 1, col + 1);
 
             const i = row * gridWidth + col;
-            const isAlive = gridBuffer[i] === 1;
+            const isAlive = grid[i] === 1;
 
-            scratchBuffer[i] = count === 3 || (isAlive && count == 2);
+            scratch[i] = count === 3 || (isAlive && count == 2);
         }
     }
 

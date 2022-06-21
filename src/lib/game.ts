@@ -5,12 +5,6 @@ const DEFAULT_GRID_WIDTH = 1000;
 const DEFAULT_GRID_HEIGHT = 1000;
 
 type RenderFunction = (props: GameProps, dt?: number) => void;
-type SetupFunction = (props: GameProps) => any;
-
-type Renderable = RenderFunction | {
-	render: RenderFunction;
-	setup: SetupFunction;
-};
 
 type Metrics = {
 	fps: number,
@@ -35,10 +29,7 @@ export type GameProps = {
 }
 
 export type Entity = {
-	ready: boolean;
-	mounted: boolean;
-	render?: RenderFunction;
-	setup?: SetupFunction;
+	render: RenderFunction;
 };
 
 export type GameApi = {
@@ -47,7 +38,7 @@ export type GameApi = {
 }
 
 // Some props for the app
-export const cellSize = writable(3);
+export const cellSize = writable(1);
 export const gridWidth = writable(DEFAULT_GRID_WIDTH);
 export const gridHeight = writable(DEFAULT_GRID_HEIGHT);
 export const grid = writable(new SharedArrayBuffer(DEFAULT_GRID_WIDTH * DEFAULT_GRID_HEIGHT));
@@ -82,37 +73,27 @@ export const props = deriveObject<GameProps>({
 
 export const key = Symbol();
 
-export const onRender = (render: Renderable) => {
-	const api: GameApi = getContext(key);
-
+export const onRender = (render: RenderFunction) => {
 	const entity: Entity = {
-		ready: false,
-		mounted: false
+		render: () => { }
 	};
 
-	if (typeof render === 'function') {
-		entity.render = render;
-	}
-	else if (render) {
-		if (render.render) entity.render = render.render;
-		if (render.setup) entity.setup = render.setup;
-	}
-
+	const api: GameApi = getContext(key);
 	api.add(entity);
 
 	onMount(() => {
-		entity.mounted = true;
+		entity.render = render;
 		return () => {
 			api.remove(entity);
-			entity.mounted = false;
+			entity.render = () => { }
 		};
 	});
 }
 
-export const randomize = (grid: ArrayBuffer) => {
-	const buffer = new Uint8Array(grid);
-	for (let i = 0; i < buffer.length; ++i) {
-		buffer[i] = Math.random() > 0.5 ? 1 : 0;
+export const randomize = (gridBuffer: ArrayBuffer) => {
+	const grid = new Uint8Array(gridBuffer);
+	for (let i = 0; i < grid.length; ++i) {
+		grid[i] = Math.random() > 0.95 ? 1 : 0;
 	}
 }
 
