@@ -1,10 +1,10 @@
-import { getContext, onMount } from 'svelte';
+import { onMount } from 'svelte';
 import { writable, derived, type Writable, type Readable } from 'svelte/store';
 
 const DEFAULT_GRID_WIDTH = 1000;
 const DEFAULT_GRID_HEIGHT = 1000;
 
-type RenderFunction = (props: GameProps, dt?: number) => void;
+type RenderFunction = (props: GameProps) => unknown;
 
 type Metrics = {
 	fps: number,
@@ -12,6 +12,7 @@ type Metrics = {
 }
 
 export type GameProps = {
+	entities: Array<Entity>,
 	cellSize: number,
 	gridWidth: number,
 	gridHeight: number,
@@ -32,12 +33,8 @@ export type Entity = {
 	render: RenderFunction;
 };
 
-export type GameApi = {
-	add: (entity: Entity) => void;
-	remove: (entity: Entity) => void;
-}
-
 // Some props for the app
+export const entities = writable<Array<Entity>>([]);
 export const cellSize = writable(1);
 export const gridWidth = writable(DEFAULT_GRID_WIDTH);
 export const gridHeight = writable(DEFAULT_GRID_HEIGHT);
@@ -55,6 +52,7 @@ export const worker = writable<Worker>();
 
 // A more convenient store for grabbing all game props
 export const props = deriveObject<GameProps>({
+	entities,
 	cellSize,
 	gridWidth,
 	gridHeight,
@@ -71,22 +69,35 @@ export const props = deriveObject<GameProps>({
 	worker
 });
 
-export const key = Symbol();
 
-export const onRender = (render: RenderFunction) => {
-	const entity: Entity = {
+function addEntity(): Entity {
+	const entity = {
 		render: () => { }
 	};
 
-	const api: GameApi = getContext(key);
-	api.add(entity);
+	entities.update(entities => {
+		entities.push(entity);
+		return entities;
+	});
 
+	return entity;
+}
+
+function removeEntity(entity: Entity) {
+	entity.render = () => { };
+
+	entities.update(entities => {
+		const idx = entities.indexOf(entity);
+		if (idx >= 0) entities.splice(idx, 1);
+		return entities;
+	});
+}
+
+export const onRender = (render: RenderFunction) => {
+	const entity = addEntity()
 	onMount(() => {
 		entity.render = render;
-		return () => {
-			api.remove(entity);
-			entity.render = () => { }
-		};
+		return () => removeEntity(entity);
 	});
 }
 

@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { onRender } from './game';
-	export let color: string = "";
-	
-	onRender(props => {
+	export let color: string;
+
+	onRender((props) => {
 		const { context, width, height } = props;
-		context.clearRect(0, 0, width, height);
-		if (color) {
-			context.fillStyle = color;
-			context.fillRect(0, 0, width, height);
-		}
+		context.fillStyle = color;
+		context.fillRect(0, 0, width, height);
 	});
 </script>
 
 <!-- The following allows this component to nest children -->
-<slot></slot>
+<slot />

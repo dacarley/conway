@@ -32,7 +32,7 @@
 
 <section on:mousemove={onMouseMove}>
 	<Canvas>
-		<Background color="hsl(0, 0%, 0%)" />
+		<Background color="hsl(0, 0%, 5%)" />
 		<GameOfLife />
 	</Canvas>
 

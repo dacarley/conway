@@ -1,61 +1,31 @@
 <script lang="ts">
-	import { onMount, setContext } from 'svelte';
-
-	import {
-		key,
-		width,
-		height,
-		canvas as canvasStore,
-		context as contextStore,
-		pixelRatio,
-		props,
-		time
-	} from './game';
-
-	import type { Entity } from './game';
+	import { onMount } from 'svelte';
+	import { width, height, canvas, context, pixelRatio, props, time, entities } from './game';
+	import { animationLoop } from './utils';
 
 	export let killLoopOnError = true;
 	export let attributes: CanvasRenderingContext2DSettings = {
 		desynchronized: true
 	};
 
-	let listeners: Entity[] = [];
-	let canvas: HTMLCanvasElement;
-	let context: CanvasRenderingContext2D;
+	let canvasElem: HTMLCanvasElement;
 	let frame: number;
 
 	onMount(() => {
 		handleResize();
 
-		// prepare canvas stores
-		context = canvas.getContext('2d', attributes) as CanvasRenderingContext2D;
-		canvasStore.set(canvas);
-		contextStore.set(context);
+		canvas.set(canvasElem);
+		context.set($canvas.getContext('2d', attributes) as CanvasRenderingContext2D);
 
-		// start game loop
-		return createLoop((elapsed, dt) => {
-			time.set(elapsed);
-			render(dt);
-		});
+		return animationLoop(render);
 	});
 
-	setContext(key, {
-		add(entity: Entity) {
-			this.remove(entity);
-			listeners.push(entity);
-		},
-		remove(entity: Entity) {
-			const idx = listeners.indexOf(entity);
-			if (idx >= 0) listeners.splice(idx, 1);
-		}
-	});
-
-	function render(dt: number) {
-		context.save();
-		context.scale($pixelRatio, $pixelRatio);
-		listeners.forEach((entity) => {
+	async function render() {
+		$context.save();
+		$context.scale($pixelRatio, $pixelRatio);
+		$entities.forEach(async (entity) => {
 			try {
-				entity.render($props, dt);
+				await entity.render($props);
 			} catch (err) {
 				console.error(err);
 				if (killLoopOnError) {
@@ -64,7 +34,7 @@
 				}
 			}
 		});
-		context.restore();
+		$context.restore();
 	}
 
 	function handleResize() {
@@ -72,26 +42,11 @@
 		height.set(window.innerHeight);
 		pixelRatio.set(window.devicePixelRatio);
 	}
-
-	function createLoop(fn: (elapsed: number, dt: number) => void) {
-		let elapsed = 0;
-		let lastTime = performance.now();
-		(function loop() {
-			frame = requestAnimationFrame(loop);
-			const beginTime = performance.now();
-			const dt = (beginTime - lastTime) / 1000;
-			lastTime = beginTime;
-			elapsed += dt;
-			fn(elapsed, dt);
-		})();
-		return () => {
-			cancelAnimationFrame(frame);
-		};
-	}
 </script>
 
+<!-- svelte-ignore component-name-lowercase -->
 <canvas
-	bind:this={canvas}
+	bind:this={canvasElem}
 	width={$width * $pixelRatio}
 	height={$height * $pixelRatio}
 	style="width: {$width}px; height: {$height}px;"
