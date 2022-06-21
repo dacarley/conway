@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { renderable } from './game';
+	import { onRender } from './game';
 
 	export let color = 'hsl(0, 0%, 100%)';
 	export let align = 'center';
@@ -12,7 +12,7 @@
 	export let fontSize = 16;
 	export let fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica';
 
-	renderable((props) => {
+	onRender((props) => {
 		const { context } = props;
 		if (text) {
 			context.fillStyle = color;

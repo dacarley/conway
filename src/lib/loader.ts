@@ -14,7 +14,7 @@ function readFile(file: Blob): Promise<string> {
 }
 
 type LoadFileResult = {
-    grid: Array<number>;
+    grid: SharedArrayBuffer;
     width: number;
     height: number;
 }
@@ -30,6 +30,8 @@ export async function loadFile(file: Blob): Promise<LoadFileResult> {
     const result = {
     } as LoadFileResult;
 
+    let buffer!: Uint8Array;
+
     for (let line of lines) {
         switch (true) {
             case ready:
@@ -44,7 +46,7 @@ export async function loadFile(file: Blob): Promise<LoadFileResult> {
                         case char === "b":
                         case char === "o":
                             for (let i = 0; i < num; ++i) {
-                                result.grid[row * result.width + col + i] = char === "o" ? 1 : 0;
+                                buffer[row * result.width + col + i] = char === "o" ? 1 : 0;
                             }
                             col += num;
                             digits = "";
@@ -52,7 +54,8 @@ export async function loadFile(file: Blob): Promise<LoadFileResult> {
                             break;
 
                         case char === "$":
-                            ++row;
+                            digits = "";
+                            row += num;
                             col = 0;
                             break;
 
@@ -77,9 +80,10 @@ export async function loadFile(file: Blob): Promise<LoadFileResult> {
 
                 const [, x, y] = match;
 
-                result.width = Number(x);
-                result.height = Number(y);
-                result.grid = new Array(result.width * result.height);
+                result.width = Math.floor(Number(x) * 1.0);
+                result.height = Math.floor(Number(y) * 1.0);
+                result.grid = new SharedArrayBuffer(result.width * result.height);
+                buffer = new Uint8Array(result.grid);
 
                 ready = true;
                 break;

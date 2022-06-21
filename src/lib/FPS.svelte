@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Text from './Text.svelte';
-	import { time, renderable } from './game.js';
+	import { time, onRender } from './game.js';
 
 	let text = '';
 
 	let elapsed = 0;
 	let frames = 0;
 	let prevTime = performance.now();
-	renderable((_props, _dt) => {
+	onRender((_props, _dt) => {
 		let time = performance.now();
 		frames++;
 		if (time >= prevTime + 1000) {

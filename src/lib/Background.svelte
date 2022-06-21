@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { renderable } from './game';
+	import { onRender } from './game';
 	export let color: string = "";
 	
-	renderable(props => {
+	onRender(props => {
 		const { context, width, height } = props;
 		context.clearRect(0, 0, width, height);
 		if (color) {

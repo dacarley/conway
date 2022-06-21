@@ -15,7 +15,9 @@
 	import type { Entity } from './game';
 
 	export let killLoopOnError = true;
-	export let attributes = {};
+	export let attributes: CanvasRenderingContext2DSettings = {
+		desynchronized: true
+	};
 
 	let listeners: Entity[] = [];
 	let canvas: HTMLCanvasElement;
@@ -33,8 +35,7 @@
 		// setup entities
 		listeners.forEach(async (entity) => {
 			if (entity.setup) {
-				let p = entity.setup($props);
-				if (p && p.then) await p;
+				await entity.setup($props);
 			}
 			entity.ready = true;
 		});

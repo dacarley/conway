@@ -1,58 +1,53 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { renderable, grid, gridWidth, gridHeight } from './game';
+	import { onRender, metrics, grid, gridWidth, gridHeight, worker, randomize } from './game';
+	import { browser } from '$app/env';
 
-	let scratchGrid: Array<number>;
+	randomize($grid);
 
-	for (let i = 0; i < $grid.length; ++i) {
-		$grid[i] = Math.random() > 0.5 ? 1 : 0;
+	let buffer: Uint8Array;
+
+	$: launchWorker($gridWidth, $gridHeight);
+	$: buffer = new Uint8Array($grid);
+
+	function launchWorker(gridWidth: number, gridHeight: number) {
+		if (!browser) {
+			return;
+		}
+
+		if ($worker) {
+			$worker.terminate();
+		}
+
+		worker.set(new Worker('/worker.js'));
+
+		$worker.postMessage({
+			action: 'init',
+			params: {
+				grid: $grid,
+				gridWidth,
+				gridHeight
+			}
+		});
+
+		$worker.addEventListener('message', (e) => {
+			switch (e.data.action) {
+				case 'metrics':
+					metrics.set(e.data.metrics);
+					break;
+
+				case 'running':
+				case 'stopped':
+					break;
+
+				default:
+					console.log('Message from worker:', e);
+			}
+		});
 	}
 
 	const aliveFillStyle = 'darkgreen';
 
-	function getCell(row: number, col: number) {
-		row = (row + $gridHeight) % $gridHeight;
-		col = (col + $gridWidth) % $gridWidth;
-		const value = $grid[row * $gridWidth + col];
-
-		return isFinite(value) ? value : 0;
-	}
-
-	function applyRules() {
-		if (!scratchGrid) {
-			scratchGrid = new Array($gridWidth * $gridHeight);
-		}
-
-		for (let row = 0; row < $gridHeight; ++row) {
-			for (let col = 0; col < $gridWidth; ++col) {
-				const isAlive = getCell(row, col) === 1;
-				const count =
-					getCell(row, col - 1) +
-					getCell(row, col + 1) +
-					getCell(row - 1, col) +
-					getCell(row + 1, col) +
-					getCell(row - 1, col - 1) +
-					getCell(row - 1, col + 1) +
-					getCell(row + 1, col - 1) +
-					getCell(row + 1, col + 1);
-
-				const i = row * $gridWidth + col;
-				if (isAlive && (count === 2 || count === 3)) {
-					scratchGrid[i] = 1;
-				} else if (!isAlive && count === 3) {
-					scratchGrid[i] = 1;
-				} else {
-					scratchGrid[i] = 0;
-				}
-			}
-		}
-
-		const temp = $grid;
-		grid.set(scratchGrid);
-		scratchGrid = temp;
-	}
-
-	renderable((props, _dt) => {
+	onRender((props, _dt) => {
 		const { context, width, height, gridWidth, gridHeight, cellSize, offsetX, offsetY } = props;
 		context.fillStyle = aliveFillStyle;
 
@@ -61,33 +56,11 @@
 				const row = ((Math.floor((y - offsetY) / cellSize) % gridHeight) + gridHeight) % gridHeight;
 				const col = ((Math.floor((x - offsetX) / cellSize) % gridWidth) + gridWidth) % gridWidth;
 
-				if ($grid[row * gridWidth + col]) {
+				if (buffer[row * gridWidth + col]) {
 					context.fillRect(x, y, cellSize, cellSize);
 				}
 			}
 		}
-	});
-
-	onMount(() => {
-		let prevTime = performance.now();
-		let frames = 0;
-
-		const loop = () => {
-			let time = performance.now();
-			frames++;
-			if (time >= prevTime + 1000) {
-				// const fps = (frames * 1000) / (time - prevTime);
-				// console.log(`${fps.toFixed(1)} FPS`);
-				prevTime = time;
-				frames = 0;
-			}
-
-			setTimeout(loop, 0);
-
-			applyRules();
-		};
-
-		loop();
 	});
 </script>
 
