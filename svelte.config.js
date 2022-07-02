@@ -1,5 +1,6 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 import preprocess from 'svelte-preprocess';
+import crossOriginIsolation from 'vite-plugin-cross-origin-isolation'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -8,12 +9,23 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			pages: 'public',
+			assets: 'public',
+			fallback: null,
+			precompress: false
+		}),
 
-		// Override http methods in the Todo forms
-		methodOverride: {
-			allowed: ['PATCH', 'DELETE']
-		}
+		prerender: {
+			default: true
+		},
+
+		vite: () => ({
+			plugins: [
+				// Used in dev builds only
+				crossOriginIsolation()
+			],
+		})
 	}
 };
 

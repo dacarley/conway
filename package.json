@@ -11,7 +11,8 @@
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check --plugin-search-dir=. . && eslint .",
-		"format": "prettier --write --plugin-search-dir=. ."
+		"format": "prettier --write --plugin-search-dir=. .",
+		"firebase": "firebase"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.22.2",
@@ -34,7 +35,10 @@
 	"type": "module",
 	"dependencies": {
 		"@fontsource/fira-mono": "^4.5.0",
+		"@sveltejs/adapter-static": "1.0.0-next.34",
 		"cookie": "^0.4.1",
+		"firebase": "^9.8.4",
+		"firebase-tools": "^11.2.0",
 		"vite-plugin-cross-origin-isolation": "^0.1.6"
 	}
 }

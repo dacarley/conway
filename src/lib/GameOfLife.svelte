@@ -1,13 +1,40 @@
 <script lang="ts">
-	import { onRender, metrics, grid, gridWidth, gridHeight, worker, randomize } from './game';
+	import {
+		onRender,
+		metrics,
+		grid,
+		gridWidth,
+		gridHeight,
+		worker,
+		randomize,
+		cellSize
+	} from './game';
 	import { browser } from '$app/env';
+	import { onMount } from 'svelte';
+	import * as Firebase from '$lib/Firebase';
 
 	randomize($grid);
 
 	let buffer: Uint8Array;
+	let settings: Record<string, any> = {};
 
 	$: launchWorker($gridWidth, $gridHeight);
 	$: buffer = new Uint8Array($grid);
+
+	onMount(async () => {
+		Firebase.init();
+		settings = await Firebase.getItem('settings');
+		console.log({ settings });
+		cellSize.set(settings.cellSize);
+
+		cellSize.subscribe(async (cellSize) => {
+			console.log({ cellSize });
+			await Firebase.setItem('settings', {
+				...settings,
+				cellSize
+			});
+		});
+	});
 
 	function launchWorker(gridWidth: number, gridHeight: number) {
 		if (!browser) {
